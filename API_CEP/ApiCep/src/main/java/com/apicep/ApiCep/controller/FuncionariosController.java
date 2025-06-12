@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apicep.ApiCep.model.*;
 import com.apicep.ApiCep.servicer.*;
 
+import java.util.Optional;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,36 +20,47 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
-@RequestMapping("/api/cargos")
+@RequestMapping("/api/funcionarios")
 @CrossOrigin(origins = "*")
-public class CargosController {
+public class FuncionariosController {
     @Autowired
-    private CargosService cargosService;
+    private FuncionariosService apicepService;
 
     @PostMapping
-    public CargosModel salvar(@RequestBody CargosModel cargosModel) {
-        return cargosService.salvar(cargosModel); // Salva no banco
+    public FuncionariosModel salvar(@RequestBody FuncionariosModel apicepModel) {
+        return apicepService.salvar(apicepModel);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        Optional<FuncionariosModel> usuario = apicepService.buscarPorEmail(loginRequest.getEmail());
+        
+        if (usuario.isEmpty() || !usuario.get().getSenha().equals(loginRequest.getSenha())) {
+            return ResponseEntity.status(401).body("Email ou senha inválidos");
+        }
+
+        return ResponseEntity.ok(usuario.get());
     }
 
     @GetMapping
-    public List<CargosModel> listarTodos() {
-        return cargosService.listarTodos();
+    public List<FuncionariosModel> listarTodos() {
+        return apicepService.listarTodos();
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        if (cargosService.findByID(id).isPresent()) {
-            cargosService.excluir(id);
+        if (apicepService.findByID(id).isPresent()) {
+            apicepService.excluir(id);
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CargosModel> update(@PathVariable Long id, @RequestBody CargosModel cargosModel) {
-        if (cargosService.findByID(id).isPresent()) {
-            cargosModel.setId(id);
-            return ResponseEntity.ok(cargosService.salvar(cargosModel));
+    public ResponseEntity<FuncionariosModel> update(@PathVariable Long id, @RequestBody FuncionariosModel apicepModel) {
+        if (apicepService.findByID(id).isPresent()) {
+            apicepModel.setId(id);
+            return ResponseEntity.ok(apicepService.salvar(apicepModel));
         }
         return ResponseEntity.notFound().build();
     }
